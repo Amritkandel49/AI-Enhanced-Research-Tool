@@ -2,3 +2,5 @@ httpx-0.27.2
 scholarly
 requests
 dotenv
+streamlit
+langchain
