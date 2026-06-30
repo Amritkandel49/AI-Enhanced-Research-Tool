@@ -1,0 +1,8 @@
+{
+    "title": "Attention is all you need",
+    "authors": "A Vaswani, N Shazeer, N Parmar",
+    "abstract": "to attend to all positions in the decoder up to and including that position. We need to prevent   We implement this inside of scaled dot-product attention by masking out ",
+    "paper_link": "https://proceedings.neurips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html",
+    "explanation_type_instruction": "Explain the paper as if to someone with no prior background in this field. Avoid jargon, or define it immediately in simple terms. Use analogies and everyday examples to make the core idea, motivation, and contribution of the paper intuitive and easy to grasp.",
+    "explanation_length_instruction": "Keep the explanation to about 2-3 sentences (around 50-70 words)."
+}

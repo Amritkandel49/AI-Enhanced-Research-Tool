@@ -1,8 +1,3 @@
-
-
-            
-            
-    
 from dotenv import load_dotenv
 import streamlit as st
 # Import the custom views you just created
@@ -11,7 +6,7 @@ from views.ai_view import render_ai_view
 
 load_dotenv()
 
-st.set_page_config(page_title="AI Research Tool", layout="centered")
+st.set_page_config(page_title="AI Research Tool", layout="wide")
 
 # Initialize session state variables
 if "fetched_papers" not in st.session_state:
@@ -24,3 +19,6 @@ if st.session_state.selected_paper is not None:
     render_ai_view()
 else:
     render_search_view()
+    
+
+# render_ai_view()

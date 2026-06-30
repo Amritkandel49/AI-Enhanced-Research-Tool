@@ -29,6 +29,7 @@ class PaperFetcher:
         papers = []
         try:
             search_query = scholarly.search_pubs(query)
+            print(next(search_query))  # Debug: print the first result to verify the search is working
             for _ in range(self.max_results):
                 try:
                     paper = next(search_query)

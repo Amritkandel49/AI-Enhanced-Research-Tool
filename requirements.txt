@@ -4,3 +4,6 @@ requests
 dotenv
 streamlit
 langchain
+langchain-core
+
+langchain-openai
