@@ -1,8 +1,8 @@
 {
-    "title": "Attention is all you need",
-    "authors": "A Vaswani, N Shazeer, N Parmar",
-    "abstract": "to attend to all positions in the decoder up to and including that position. We need to prevent   We implement this inside of scaled dot-product attention by masking out ",
-    "paper_link": "https://proceedings.neurips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html",
-    "explanation_type_instruction": "Explain the paper as if to someone with no prior background in this field. Avoid jargon, or define it immediately in simple terms. Use analogies and everyday examples to make the core idea, motivation, and contribution of the paper intuitive and easy to grasp.",
-    "explanation_length_instruction": "Keep the explanation to about 2-3 sentences (around 50-70 words)."
+    "title": "Deep reinforcement learning for sequence-to-sequence models",
+    "authors": "Y Keneshloo, T Shi, N Ramakrishnan",
+    "abstract": "In this paper, we provided a general overview of a specific type of deep learning models  called sequence-to-sequence (seq2seq) models and discussed some of the recent advances in",
+    "paper_link": "https://ieeexplore.ieee.org/abstract/document/8801910/",
+    "explanation_type_instruction": "Focus heavily on the mathematical formulation of the paper. Explain the key equations, models, theorems, or algorithms used. If the abstract references specific methods (e.g., optimization, statistical models, proofs), describe their mathematical intuition and notation as clearly as possible, even if some details must be inferred since only the abstract is available. Use LaTeX-style notation where appropriate.",
+    "explanation_length_instruction": "Provide a detailed explanation of about 3-5 paragraphs (around 350-450 words), covering context, method, and significance."
 }

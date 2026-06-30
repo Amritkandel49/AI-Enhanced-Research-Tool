@@ -28,6 +28,7 @@ Your task is to generate an explanation of this paper for the user based on the 
 2. Length of explanation: {explanation_length_instruction}
 
 Important guidelines:
+- Give the output in markdown format, using LaTeX-style notation for any mathematical expressions.
 -Kindly go through the publication link provided to you and get the knowledge of the paper in detail. 
 - Base your explanation only on the paper detail provided to you. Do not fabricate specific results, numbers, or claims that are not mention in the papers.
 - If you lack detailed information, do not make assumptions or invent content. Kindly acknowledge the limitations.

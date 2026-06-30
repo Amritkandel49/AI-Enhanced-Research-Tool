@@ -1,7 +1,7 @@
 import streamlit as st
 import asyncio
 from src import PaperFetcher
-from src import papers as mock_papers
+# from src import papers as mock_papers
 
 def render_search_view():
     col1, main_col, col3 = st.columns([1, 3 , 1])
@@ -15,12 +15,12 @@ def render_search_view():
         if submit and user_query:
             st.session_state.selected_paper = None  # Reset selection on new search
             
-            # with st.spinner("Fetching papers..."):
-            #     pf = PaperFetcher()
-            #     st.session_state.fetched_papers = asyncio.run(pf.fetch_papers(user_query))
+            with st.spinner("Fetching papers..."):
+                pf = PaperFetcher()
+                st.session_state.fetched_papers = asyncio.run(pf.fetch_papers(user_query))
             
             # Fallback to your mock data
-            st.session_state.fetched_papers = mock_papers
+            # st.session_state.fetched_papers = mock_papers
 
         # Render results if they exist in state
         if st.session_state.fetched_papers:

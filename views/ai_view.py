@@ -1,6 +1,5 @@
 import streamlit as st
-from src import papers as mock_papers
-from llm import PromptGenerator
+from llm import PromptGenerator, ModelSelection
 
 def update_llm_settings():
     st.session_state.llm_settings['model'] = st.session_state.llm_model_key
@@ -13,13 +12,13 @@ def update_llm_settings():
     )
 
 def render_ai_view():
-    # paper = st.session_state.selected_paper
-    paper = mock_papers[0]
+    paper = st.session_state.selected_paper
+    # paper = mock_papers[0]
     # st.set_page_config(page_title=paper['title'], layout="wide")
     
     if "llm_settings" not in st.session_state:
         st.session_state.llm_settings = {
-            "model": "gpt-3.5-turbo",
+            "model": "openai/gpt-oss-20b:free",
             "temperature": 0.7,
             "explanation_type": "beginner_friendly",
             "explanation_length": "short"
@@ -55,7 +54,7 @@ def render_ai_view():
             
             with header_c2_form:
                 llm_model = header_c2_form.selectbox(
-                    "Select LLM Model", ["openai/gpt-oss-20b:free"], key="llm_model_key"
+                    "Select LLM Model", ["openai/gpt-oss-20b:free", "zai-org/GLM-5.2"], key="llm_model_key"
                 )
                 llm_temp = header_c2_form.slider(
                     "Set LLM Temperature", min_value=0.0, max_value=1.0, value=0.7, step=0.1, key="llm_temp_key"
@@ -76,9 +75,15 @@ def render_ai_view():
                     on_click=update_llm_settings
                 )
                 
-    
+    model_selection = ModelSelection(st.session_state.llm_settings)
+    llm = model_selection.get_model()
+    # st.write(llm)
     pg = PromptGenerator(paper, st.session_state.llm_settings)
     prompt_str = pg.build_explanation_prompt()
+    
+    result = llm.invoke(prompt_str)
+    
+    st.markdown(result.content)
     
     
     
