@@ -1,8 +1,8 @@
 {
-    "title": "Deep reinforcement learning for sequence-to-sequence models",
-    "authors": "Y Keneshloo, T Shi, N Ramakrishnan",
-    "abstract": "In this paper, we provided a general overview of a specific type of deep learning models  called sequence-to-sequence (seq2seq) models and discussed some of the recent advances in",
-    "paper_link": "https://ieeexplore.ieee.org/abstract/document/8801910/",
+    "title": "Roberta: A robustly optimized bert pretraining approach",
+    "authors": "Y Liu, M Ott, N Goyal, J Du, M Joshi, D Chen",
+    "abstract": "that BERT was significantly undertrained and propose an improved recipe for training BERT   exceed the performance of all of the post-BERT methods. Our modifications are simple, they",
+    "paper_link": "https://arxiv.org/abs/1907.11692",
     "explanation_type_instruction": "Focus heavily on the mathematical formulation of the paper. Explain the key equations, models, theorems, or algorithms used. If the abstract references specific methods (e.g., optimization, statistical models, proofs), describe their mathematical intuition and notation as clearly as possible, even if some details must be inferred since only the abstract is available. Use LaTeX-style notation where appropriate.",
     "explanation_length_instruction": "Provide a detailed explanation of about 3-5 paragraphs (around 350-450 words), covering context, method, and significance."
 }

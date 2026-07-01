@@ -1,5 +1,28 @@
 import streamlit as st
 from llm import PromptGenerator, ModelSelection
+from src import format_llm_output
+# from src import papers as mock_papers
+
+
+test_output = '''
+BERT’s pre‑training objective is a joint cross‑entropy over two tasks: masked language modeling (MLM) and next‑sentence prediction (NSP). For a token sequence (x=(x_1,\dots ,x_T)) and a set of masked positions (\mathcal{M}\subseteq{1,\dots ,T}), the MLM loss is
+
+[ \mathcal{L}{\text{MLM}}(x)= -\sum{t\in\mathcal{M}}\log P_\theta(x_t\mid x_{\setminus t}), ]
+
+where (P_\theta) is the softmax output of the Transformer encoder parameterised by (\theta). The NSP loss is
+
+[ \mathcal{L}{\text{NSP}}(x)= -\log P\theta(\text{next}\mid x), ]
+
+and the total loss is (\mathcal{L}=\mathcal{L}{\text{MLM}}+\mathcal{L}{\text{NSP}}). The authors argue that the original BERT training schedule—limited steps, modest batch size, and a suboptimal learning‑rate schedule—leads to under‑training, i.e., the model does not fully explore the parameter space that would minimise (\mathcal{L}).
+
+The paper’s mathematical contribution lies in a systematic re‑engineering of the optimisation pipeline. They employ the AdamW optimiser with update rule
+
+[ \theta_{t+1}= \theta_t-\alpha_t\frac{m_t}{\sqrt{v_t}+\epsilon}-\alpha_t\lambda\theta_t, ]
+
+where (\alpha_t) follows a linear warm‑up followed by cosine decay, (m_t) and (v_t) are the first‑ and second‑moment estimates, and (\lambda) is a weight‑decay coefficient. Gradient clipping is applied by normalising the gradient vector to a maximum (L_2) norm (\tau). Crucially, the authors replace NSP with a “dynamic masking” strategy: each training batch re‑samples the mask positions (\mathcal{M}) on the fly, ensuring that the model sees a richer distribution of masked tokens. They also increase the batch size (B) (e.g., (B=256) or larger) and extend the total number of training steps (S) (often to (S\approx 1,\text{M})), thereby allowing the optimiser to converge to a lower (\mathcal{L}).
+
+These modifications, while conceptually simple, yield a robust optimisation trajectory. By decoupling the learning‑rate schedule from the batch size, applying weight decay directly to the parameters, and removing the NSP objective (which has been shown to provide limited signal), the training process becomes more stable and efficient. Empirically, the resulting “Roberta” model surpasses all subsequent post‑BERT methods on standard benchmarks, demonstrating that careful tuning of the optimisation hyper‑parameters can unlock performance gains that were previously unattainable with the vanilla BERT recipe.
+'''
 
 def update_llm_settings():
     st.session_state.llm_settings['model'] = st.session_state.llm_model_key
@@ -10,6 +33,7 @@ def update_llm_settings():
     st.session_state.llm_settings['explanation_length'] = (
         st.session_state.explanation_length_key.lower().replace(" ", "_")
     )
+    st.session_state.llm_submitted = True
 
 def render_ai_view():
     paper = st.session_state.selected_paper
@@ -23,6 +47,7 @@ def render_ai_view():
             "explanation_type": "beginner_friendly",
             "explanation_length": "short"
         }
+        st.session_state.llm_submitted = False
     
     if st.button("⬅ Back to Search Results"):
         st.session_state.selected_paper = None
@@ -75,17 +100,26 @@ def render_ai_view():
                     on_click=update_llm_settings
                 )
                 
-    model_selection = ModelSelection(st.session_state.llm_settings)
-    llm = model_selection.get_model()
-    # st.write(llm)
-    pg = PromptGenerator(paper, st.session_state.llm_settings)
-    prompt_str = pg.build_explanation_prompt()
-    
-    result = llm.invoke(prompt_str)
-    
-    st.markdown(result.content)
-    
-    
+    if st.session_state.llm_submitted:
+        with st.spinner("Generating explanation..."):
+            # st.info("Generating your explanation here soon...")
+            # model_selection = ModelSelection(st.session_state.llm_settings)
+            # llm = model_selection.get_model()
+            # pg = PromptGenerator(paper, st.session_state.llm_settings)
+            # prompt_str = pg.build_explanation_prompt()
+
+            # result = llm.invoke(prompt_str)
+            
+            formatted_output = format_llm_output(test_output)
+
+            left, middle, right = st.columns([1, 3, 1])
+            with middle:
+                st.markdown(formatted_output, unsafe_allow_html=True)
+    else:
+        st.info("Configure your settings above and click **Ask AI** to generate an explanation.")
+        
+        
+        
     
     # st.write("### Generated Prompt for LLM:")
     # st.code(prompt_str, language="json")

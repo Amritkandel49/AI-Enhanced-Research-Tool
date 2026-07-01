@@ -19,7 +19,7 @@ def render_search_view():
                 pf = PaperFetcher()
                 st.session_state.fetched_papers = asyncio.run(pf.fetch_papers(user_query))
             
-            # Fallback to your mock data
+            # # Fallback to your mock data
             # st.session_state.fetched_papers = mock_papers
 
         # Render results if they exist in state
