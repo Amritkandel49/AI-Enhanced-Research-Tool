@@ -20,12 +20,14 @@ class ModelSelection:
                 temperature=self.temperature,
             )
             
-        # elif self.model_name == "FreedomAISVR/Qwable-v1-MXFP4-MOE-GGUF":
-        #     self.model = HuggingFaceEndpoint(
-        #         repo_id="FreedomAISVR/Qwable-v1-MXFP4-MOE-GGUF",
-        #         task="text-generation"
-        #     )
-        
+        elif self.model_name == "google/gemini-2.5-flash-lite-preview-06-17":
+            self.model = ChatOpenAI(
+                base_url="https://lightning.ai/api/v1/",
+                api_key=os.getenv("LIGHTNING_API_KEY"),
+                model=self.model_name,
+                temperature=self.temperature
+            )
+            
         
         else:
             raise ValueError(f"Unsupported model: {self.model_name}")

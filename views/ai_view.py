@@ -4,25 +4,25 @@ from src import format_llm_output
 # from src import papers as mock_papers
 
 
-test_output = '''
-BERT’s pre‑training objective is a joint cross‑entropy over two tasks: masked language modeling (MLM) and next‑sentence prediction (NSP). For a token sequence (x=(x_1,\dots ,x_T)) and a set of masked positions (\mathcal{M}\subseteq{1,\dots ,T}), the MLM loss is
+# test_output = '''
+# BERT’s pre‑training objective is a joint cross‑entropy over two tasks: masked language modeling (MLM) and next‑sentence prediction (NSP). For a token sequence (x=(x_1,\dots ,x_T)) and a set of masked positions (\mathcal{M}\subseteq{1,\dots ,T}), the MLM loss is
 
-[ \mathcal{L}{\text{MLM}}(x)= -\sum{t\in\mathcal{M}}\log P_\theta(x_t\mid x_{\setminus t}), ]
+# [ \mathcal{L}{\text{MLM}}(x)= -\sum{t\in\mathcal{M}}\log P_\theta(x_t\mid x_{\setminus t}), ]
 
-where (P_\theta) is the softmax output of the Transformer encoder parameterised by (\theta). The NSP loss is
+# where (P_\theta) is the softmax output of the Transformer encoder parameterised by (\theta). The NSP loss is
 
-[ \mathcal{L}{\text{NSP}}(x)= -\log P\theta(\text{next}\mid x), ]
+# [ \mathcal{L}{\text{NSP}}(x)= -\log P\theta(\text{next}\mid x), ]
 
-and the total loss is (\mathcal{L}=\mathcal{L}{\text{MLM}}+\mathcal{L}{\text{NSP}}). The authors argue that the original BERT training schedule—limited steps, modest batch size, and a suboptimal learning‑rate schedule—leads to under‑training, i.e., the model does not fully explore the parameter space that would minimise (\mathcal{L}).
+# and the total loss is (\mathcal{L}=\mathcal{L}{\text{MLM}}+\mathcal{L}{\text{NSP}}). The authors argue that the original BERT training schedule—limited steps, modest batch size, and a suboptimal learning‑rate schedule—leads to under‑training, i.e., the model does not fully explore the parameter space that would minimise (\mathcal{L}).
 
-The paper’s mathematical contribution lies in a systematic re‑engineering of the optimisation pipeline. They employ the AdamW optimiser with update rule
+# The paper’s mathematical contribution lies in a systematic re‑engineering of the optimisation pipeline. They employ the AdamW optimiser with update rule
 
-[ \theta_{t+1}= \theta_t-\alpha_t\frac{m_t}{\sqrt{v_t}+\epsilon}-\alpha_t\lambda\theta_t, ]
+# [ \theta_{t+1}= \theta_t-\alpha_t\frac{m_t}{\sqrt{v_t}+\epsilon}-\alpha_t\lambda\theta_t, ]
 
-where (\alpha_t) follows a linear warm‑up followed by cosine decay, (m_t) and (v_t) are the first‑ and second‑moment estimates, and (\lambda) is a weight‑decay coefficient. Gradient clipping is applied by normalising the gradient vector to a maximum (L_2) norm (\tau). Crucially, the authors replace NSP with a “dynamic masking” strategy: each training batch re‑samples the mask positions (\mathcal{M}) on the fly, ensuring that the model sees a richer distribution of masked tokens. They also increase the batch size (B) (e.g., (B=256) or larger) and extend the total number of training steps (S) (often to (S\approx 1,\text{M})), thereby allowing the optimiser to converge to a lower (\mathcal{L}).
+# where (\alpha_t) follows a linear warm‑up followed by cosine decay, (m_t) and (v_t) are the first‑ and second‑moment estimates, and (\lambda) is a weight‑decay coefficient. Gradient clipping is applied by normalising the gradient vector to a maximum (L_2) norm (\tau). Crucially, the authors replace NSP with a “dynamic masking” strategy: each training batch re‑samples the mask positions (\mathcal{M}) on the fly, ensuring that the model sees a richer distribution of masked tokens. They also increase the batch size (B) (e.g., (B=256) or larger) and extend the total number of training steps (S) (often to (S\approx 1,\text{M})), thereby allowing the optimiser to converge to a lower (\mathcal{L}).
 
-These modifications, while conceptually simple, yield a robust optimisation trajectory. By decoupling the learning‑rate schedule from the batch size, applying weight decay directly to the parameters, and removing the NSP objective (which has been shown to provide limited signal), the training process becomes more stable and efficient. Empirically, the resulting “Roberta” model surpasses all subsequent post‑BERT methods on standard benchmarks, demonstrating that careful tuning of the optimisation hyper‑parameters can unlock performance gains that were previously unattainable with the vanilla BERT recipe.
-'''
+# These modifications, while conceptually simple, yield a robust optimisation trajectory. By decoupling the learning‑rate schedule from the batch size, applying weight decay directly to the parameters, and removing the NSP objective (which has been shown to provide limited signal), the training process becomes more stable and efficient. Empirically, the resulting “Roberta” model surpasses all subsequent post‑BERT methods on standard benchmarks, demonstrating that careful tuning of the optimisation hyper‑parameters can unlock performance gains that were previously unattainable with the vanilla BERT recipe.
+# '''
 
 def update_llm_settings():
     st.session_state.llm_settings['model'] = st.session_state.llm_model_key
@@ -103,7 +103,7 @@ def render_ai_view():
             
             with header_c2_form:
                 llm_model = header_c2_form.selectbox(
-                    "Select LLM Model", ["openai/gpt-oss-20b:free", "zai-org/GLM-5.2"], key="llm_model_key"
+                    "Select LLM Model", ["openai/gpt-oss-20b:free", "google/gemini-2.5-flash-lite-preview-06-17"], key="llm_model_key"
                 )
                 llm_temp = header_c2_form.slider(
                     "Set LLM Temperature", min_value=0.0, max_value=1.0, value=0.7, step=0.1, key="llm_temp_key"
@@ -126,7 +126,7 @@ def render_ai_view():
                 
     if st.session_state.llm_submitted:
         with st.spinner("Generating explanation..."):
-            st.info("Generating your explanation here soon...")
+            # st.info("Generating your explanation here soon...")
             model_selection = ModelSelection(st.session_state.llm_settings)
             llm = model_selection.get_model()
             pg = PromptGenerator(paper, st.session_state.llm_settings)
