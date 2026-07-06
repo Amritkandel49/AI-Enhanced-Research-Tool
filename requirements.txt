@@ -1,10 +1,8 @@
-httpx-0.27.2
-scholarly
+arxiv
 requests
-dotenv
+python-dotenv
 streamlit
 langchain
 langchain-core
-
 langchain-openai
 langchain-huggingface

@@ -29,7 +29,7 @@ def format_llm_output(text: str) -> str:
         return ""
 
     # 1. Strip raw control characters that mess up string processing
-    text = text.replace("\x0c", "").replace("", "")
+    # text = text.replace("\x0c", "").replace("", "")
 
     # 2. Fix the missing backslashes on critical math symbols
     broken_tokens = {
@@ -38,8 +38,8 @@ def format_llm_output(text: str) -> str:
         r"\brac\b": r"\\frac",
         r"\bext\b": r"\\text",
     }
-    for broken, fixed in broken_tokens.items():
-        text = re.sub(broken, fixed, text)
+    # for broken, fixed in broken_tokens.items():
+    #     text = re.sub(broken, fixed, text)
 
     # 3. Standardize block brackets [ ... ] into clean $$ ... $$
     text = re.sub(r"\[\s*(.*?)\s*\]", r"$$\1$$", text)

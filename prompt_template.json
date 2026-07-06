@@ -1,8 +1,8 @@
 {
-    "title": "Roberta: A robustly optimized bert pretraining approach",
-    "authors": "Y Liu, M Ott, N Goyal, J Du, M Joshi, D Chen",
-    "abstract": "that BERT was significantly undertrained and propose an improved recipe for training BERT   exceed the performance of all of the post-BERT methods. Our modifications are simple, they",
-    "paper_link": "https://arxiv.org/abs/1907.11692",
-    "explanation_type_instruction": "Focus heavily on the mathematical formulation of the paper. Explain the key equations, models, theorems, or algorithms used. If the abstract references specific methods (e.g., optimization, statistical models, proofs), describe their mathematical intuition and notation as clearly as possible, even if some details must be inferred since only the abstract is available. Use LaTeX-style notation where appropriate.",
+    "title": "WiCV 2019: The Sixth Women In Computer Vision Workshop",
+    "authors": "Irene Amerini, Elena Balashova, Sayna Ebrahimi, Kathryn Leonard, Arsha Nagrani, Amaia Salvador",
+    "abstract": "In this paper we present the Women in Computer Vision Workshop - WiCV 2019, organized in conjunction with CVPR 2019. This event is meant for increasing the visibility and inclusion of women researchers in the computer vision field. Computer vision and machine learning have made incredible progress over the past years, but the number of female researchers is still low both in academia and in industry. WiCV is organized especially for the following reason: to raise visibility of female researchers, to increase collaborations between them, and to provide mentorship to female junior researchers in the field. In this paper, we present a report of trends over the past years, along with a summary of statistics regarding presenters, attendees, and sponsorship for the current workshop.",
+    "paper_link": "http://arxiv.org/abs/1909.10225v1",
+    "explanation_type_instruction": "Provide a concise, neutral, objective summary of the paper's purpose, methodology, and findings, written in clear academic language. Avoid unnecessary elaboration or simplification \u2014 focus on conveying the core contribution efficiently.",
     "explanation_length_instruction": "Provide a detailed explanation of about 3-5 paragraphs (around 350-450 words), covering context, method, and significance."
 }

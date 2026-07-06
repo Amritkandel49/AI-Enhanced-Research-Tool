@@ -62,16 +62,40 @@ def render_ai_view():
         with header_c1:
             header_c1.title(paper['title'])
             
-            header_c1.write(f"**Authors:** {', '.join(paper['authors'])}")
-            header_c1.write(f"**Venue:** {paper['venue']} ({paper['year']})")
+            # Authors
+            authors = paper['authors']
+            author_str = (
+                ', '.join(authors[:5]) +
+                (f' +{len(authors)-5} more' if len(authors) > 5 else '')
+            )
+            header_c1.write(f"**Authors:** {author_str}")
+            
+            # Metadata row
+            meta_cols = header_c1.columns(3)
+            meta_cols[0].write(f"📅 **Published:** {paper.get('published', paper.get('year', ''))}")
+            meta_cols[1].write(f"🏷️ **Category:** `{paper.get('venue', '')}`")
+            categories = paper.get('categories', [])
+            if categories:
+                meta_cols[2].write(
+                    '📂 **Tags:** ' + ', '.join(f'`{c}`' for c in categories[:4])
+                )
             
             header_c1.subheader("Abstract")
             header_c1.write(paper['abstract'])
             
-            header_c1.link_button(
-                label="Read Full Paper",
+            btn_c1, btn_c2 = header_c1.columns(2)
+            btn_c1.link_button(
+                label="📄 Abstract Page",
                 url=paper['link'],
-                type="primary")
+                type="primary",
+                use_container_width=True,
+            )
+            if paper.get('pdf_url'):
+                btn_c2.link_button(
+                    label="⬇️ Download PDF",
+                    url=paper['pdf_url'],
+                    use_container_width=True,
+                )
             
         with header_c2:
             # header_c2.write(f"[Read Paper]({paper['link']})")
@@ -102,15 +126,17 @@ def render_ai_view():
                 
     if st.session_state.llm_submitted:
         with st.spinner("Generating explanation..."):
-            # st.info("Generating your explanation here soon...")
-            # model_selection = ModelSelection(st.session_state.llm_settings)
-            # llm = model_selection.get_model()
-            # pg = PromptGenerator(paper, st.session_state.llm_settings)
-            # prompt_str = pg.build_explanation_prompt()
+            st.info("Generating your explanation here soon...")
+            model_selection = ModelSelection(st.session_state.llm_settings)
+            llm = model_selection.get_model()
+            pg = PromptGenerator(paper, st.session_state.llm_settings)
+            prompt_str = pg.build_explanation_prompt()
 
-            # result = llm.invoke(prompt_str)
+            result = llm.invoke(prompt_str)
             
-            formatted_output = format_llm_output(test_output)
+            # llm.invoke() returns an AIMessage object; extract its text content
+            result_text = result.content if hasattr(result, "content") else str(result)
+            formatted_output = format_llm_output(result_text)
 
             left, middle, right = st.columns([1, 3, 1])
             with middle:
