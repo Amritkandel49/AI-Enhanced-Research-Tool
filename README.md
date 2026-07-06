@@ -1,6 +1,6 @@
 # AI Enhanced Research Tool
 
-A Streamlit web application that lets you **search for academic papers** from Google Scholar and **ask an AI** to explain them in any style you choose — all powered by LangChain, ScraperAPI, and free hosted LLMs.
+A web application that lets you **search for academic papers** from arXiv and **ask an AI** to explain them in any style you choose — all powered by LangChain and free hosted LLMs.
 
 ---
 
@@ -23,12 +23,11 @@ A Streamlit web application that lets you **search for academic papers** from Go
 
 ## Overview
 
-The **AI Enhanced Research Tool** is a personal learning project that bridges academic paper discovery with AI-powered explanations. A user types a research topic or paper title, the app fetches the top relevant papers from Google Scholar, and then — for any paper the user selects — it uses a large language model to generate a tailored explanation based on the user's preferred style and length.
+The **AI Enhanced Research Tool** is a personal learning project that bridges academic paper discovery with AI-powered explanations. A user types a research topic or paper title, the app fetches the top relevant papers from arXiv, and then — for any paper the user selects — it uses a large language model to generate a tailored explanation based on the user's preferred style and length.
 
 This project was built as a hands-on exploration of:
 
-- The **`scholarly`** Python library for Google Scholar scraping
-- **ScraperAPI** as a proxy layer to bypass bot detection on Google Scholar
+- The **`arxiv`** Python library for arXiv paper search
 - **LangChain's** `PromptTemplate` and LLM abstraction components
 - **OpenRouter** as a free gateway to hosted LLMs
 - **Streamlit** for building a fast, clean UI
@@ -39,7 +38,7 @@ This project was built as a hands-on exploration of:
 
 | Feature | Description |
 |---|---|
-| **Paper Search** | Search Google Scholar by topic or title and retrieve up to 10 results |
+| **Paper Search** | Search arXiv by topic or title and retrieve up to 10 results |
 | **Paper Cards** | Each paper is displayed with its title, authors, venue, year, and abstract |
 | **Ask AI** | Select any paper and ask the AI to explain it in your preferred style |
 | **LLM Settings** | Choose model, temperature, explanation type, and explanation length |
@@ -54,8 +53,7 @@ This project was built as a hands-on exploration of:
 | Component | Technology |
 |---|---|
 | **Frontend / UI** | [Streamlit](https://streamlit.io/) |
-| **Google Scholar Scraping** | [`scholarly`](https://scholarly.readthedocs.io/) |
-| **Proxy / Bot Bypass** | [ScraperAPI](https://www.scraperapi.com/) |
+| **arXiv Paper Search** | [`arxiv`](https://python-arxiv.readthedocs.io/) |
 | **LLM Prompt Framework** | [LangChain](https://www.langchain.com/) (`langchain-core`, `langchain-openai`, `langchain-huggingface`) |
 | **LLM Provider (Primary)** | [OpenRouter](https://openrouter.ai/) — free tier (`openai/gpt-oss-20b:free`) |
 | **LLM Provider (Experimental)** | [Hugging Face Inference Endpoints](https://huggingface.co/inference-endpoints) (`langchain-huggingface`) |
@@ -111,8 +109,7 @@ views/ai_view.py
   └─► Calls PromptGenerator → LangChain PromptTemplate → LLM → renders markdown
 
 src/fetch_papers.py (PaperFetcher)
-  └─► Sets up ScraperAPI proxy via scholarly.ProxyGenerator
-  └─► Fetches papers using scholarly.search_pubs()
+  └─► Searches arXiv using the arxiv Python client
   └─► Offloads blocking I/O to a thread with asyncio.to_thread()
 
 llm/prompt_generator.py (PromptGenerator)
@@ -133,15 +130,18 @@ llm/llm_model.py (ModelSelection)
 
 ### 1. Paper Fetching Pipeline
 
-`scholarly` is a Python library that scrapes Google Scholar. Google Scholar is heavily protected against bots, so direct requests get blocked quickly. To solve this, the project uses **ScraperAPI** as a rotating proxy layer.
+This project uses the arXiv Python client to search papers directly, which keeps the paper-fetching path lightweight and avoids scraping entirely.
 
 ```python
 # src/fetch_papers.py
-pg = ProxyGenerator()
-pg.ScraperAPI(api_key)           # Register ScraperAPI as the proxy
-scholarly.use_proxy(pg)          # Tell scholarly to route through it
+search = arxiv.Search(
+  query=query,
+  max_results=max_results,
+  sort_by=arxiv.SortCriterion.Relevance,
+)
 
-search_query = scholarly.search_pubs(query)  # Now safe to scrape
+for result in client.results(search):
+  ...
 ```
 
 Each result is normalised into a dictionary with keys: `title`, `authors`, `link`, `venue`, `year`, `abstract`. The fetch is wrapped in `asyncio.to_thread()` so the blocking I/O doesn't freeze the Streamlit event loop.
@@ -212,9 +212,6 @@ st.markdown(result.content)                  # Render markdown output
 Create a `.env` file in the project root with the following keys:
 
 ```env
-# ScraperAPI — for proxying Google Scholar requests
-SCRAPERAPI_KEY=your_scraperapi_key_here
-
 # OpenRouter — OpenAI-compatible base URL for free LLM access
 OPENAI_BASE_URL=https://openrouter.ai/api/v1
 OPENAI_API_KEY=your_openrouter_api_key_here
@@ -234,7 +231,6 @@ Follow these steps to run this project locally after cloning from GitHub.
 ### Prerequisites
 
 - Python 3.10 or higher
-- A free [ScraperAPI](https://www.scraperapi.com/) account (free tier: 5,000 requests/month)
 - A free [OpenRouter](https://openrouter.ai/) account (access to free models like `openai/gpt-oss-20b:free`)
 
 ### Step 1 — Clone the Repository
@@ -273,7 +269,6 @@ cp .env.example .env   # or create .env manually
 Edit `.env` and fill in your actual API keys:
 
 ```env
-SCRAPERAPI_KEY=your_scraperapi_key_here
 OPENAI_BASE_URL=https://openrouter.ai/api/v1
 OPENAI_API_KEY=your_openrouter_api_key_here
 ```
@@ -289,7 +284,7 @@ The app will open in your browser at `http://localhost:8501`.
 ### Step 6 — Use the App
 
 1. Type a research paper title or topic in the search box and click **Fetch Papers**.
-2. Browse the list of returned papers from Google Scholar.
+2. Browse the list of returned papers from arXiv.
 3. Click **ASK AI** on any paper you want to understand.
 4. On the AI page, configure your preferred model, temperature, explanation style, and length.
 5. Click **Ask AI** to generate an explanation.
@@ -305,16 +300,15 @@ This project was built while **actively learning** LangChain and AI-powered appl
 
 | Service | Constraint |
 |---|---|
-| **ScraperAPI (Free Tier)** | 5,000 API calls/month — each Scholar page fetch consumes calls. Heavy usage will exhaust this quickly. |
 | **OpenRouter (Free Models)** | Free model endpoints (`openai/gpt-oss-20b:free`) are rate-limited and may respond slowly or return errors during peak demand. |
 | **Hugging Face Endpoints** | Free HuggingFace Inference API has cold-start delays and strict rate limits. The HuggingFace model integration is present in the codebase but kept commented out as a work-in-progress. |
 
 ### Architectural Limitations
 
-- **Abstract-only context:** `scholarly` returns only the abstract and metadata for each paper, not the full text. The AI explanation is therefore limited to what can be inferred from the abstract. The prompt instructs the model to visit the paper link — but whether it can do so depends on the model's capabilities.
+- **Abstract-only context:** arXiv search returns only the abstract and metadata for each paper, not the full text. The AI explanation is therefore limited to what can be inferred from the abstract. The prompt instructs the model to visit the paper link — but whether it can do so depends on the model's capabilities.
 - **No chat history / memory:** The current AI view generates a fresh explanation on every submission. There is no multi-turn conversation or context carried over between interactions (the chat input UI exists but is disabled).
 - **Single model at a time:** The `ModelSelection` class currently supports only one production model (`openai/gpt-oss-20b:free` via OpenRouter). Adding more models requires extending the `if/elif` block manually.
-- **No result caching:** Every search triggers a live ScraperAPI call. Results are held only in Streamlit session state and lost on page refresh.
+- **No result caching:** Every search triggers a live arXiv query. Results are held only in Streamlit session state and lost on page refresh.
 
 ### Learning Context
 
@@ -324,10 +318,10 @@ This project was built while **actively learning** LangChain and AI-powered appl
 
 ## Future Improvements
 
-- [ ] Add full-text retrieval via arXiv or Semantic Scholar APIs (no scraping needed)
+- [ ] Add full-text retrieval via arXiv or Semantic Scholar APIs
 - [ ] Enable multi-turn chat with conversation memory using LangChain's `ConversationBufferMemory`
 - [ ] Support more LLM providers (Groq, Together AI, etc.) in `ModelSelection`
-- [ ] Add result caching with `st.cache_data` to save ScraperAPI quota
+- [ ] Add result caching with `st.cache_data` to avoid repeated arXiv queries
 - [ ] Implement a favourites / save-paper feature using a local SQLite database
 - [ ] Deploy to Streamlit Community Cloud
 
