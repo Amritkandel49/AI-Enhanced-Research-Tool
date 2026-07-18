@@ -9,3 +9,4 @@ langchain-huggingface
 pymupdf
 langchain-chroma
 langchain-community
+langchain-google-genai
