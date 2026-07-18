@@ -7,3 +7,5 @@ langchain-core
 langchain-openai
 langchain-huggingface
 pymupdf
+langchain-chroma
+langchain-community

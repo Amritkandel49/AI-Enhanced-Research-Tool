@@ -1,7 +1,21 @@
 import streamlit as st
 from llm import PromptGenerator, ModelSelection
 from src import format_llm_output
-# from src import papers as mock_papers
+from src import TextProcessor
+from dotenv import load_dotenv 
+
+load_dotenv()
+
+from langchain_chroma import Chroma
+from langchain_google_genai import GoogleGenerativeAIEmbeddings 
+vector_store = Chroma(
+    collection_name = "AI_research_tool_vector_store",
+    embedding_function = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-2"),
+    persist_directory = "./chroma_db",
+    create_collection_if_not_exists = True
+)
+
+
 
 
 # test_output = '''
@@ -79,6 +93,7 @@ def render_ai_view():
                 meta_cols[2].write(
                     '📂 **Tags:** ' + ', '.join(f'`{c}`' for c in categories[:4])
                 )
+            meta_cols[2].write(f"🔗 **arXiv ID:** `{paper.get('arxiv_id', '')}`")
             
             header_c1.subheader("Abstract")
             header_c1.write(paper['abstract'])
@@ -129,6 +144,11 @@ def render_ai_view():
             # st.info("Generating your explanation here soon...")
             model_selection = ModelSelection(st.session_state.llm_settings)
             llm = model_selection.get_model()
+            
+            Documents = TextProcessor(paper['arxiv_id']).fetch_and_process_text()
+            
+            vector_store.add_documents(Documents)
+            
             pg = PromptGenerator(paper, st.session_state.llm_settings)
             prompt_str = pg.build_explanation_prompt()
 

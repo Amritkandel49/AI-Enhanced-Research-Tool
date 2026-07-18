@@ -111,6 +111,9 @@ if __name__ == "__main__":
     loader = PaperLoader()
     doc = loader.load(TEST_ID)
 
+    with open("paper_text_fetched.txt", "w") as f:
+        f.write(doc.page_content)
+
     print("=" * 60)
     print(f"Title     : {doc.metadata['title']}")
     print(f"Published : {doc.metadata['published']}")

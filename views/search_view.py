@@ -29,12 +29,13 @@ def render_search_view():
         if st.session_state.get("fetched_papers"):
             papers = st.session_state.fetched_papers
             st.write(f"**{len(papers)} result(s)** found on arXiv for your query.")
-
+            print(papers[0].get("arxiv_id", ""))
+    
             for idx, paper in enumerate(papers):
                 each = st.container(border=True, key=f"paper_{idx}", gap="small")
 
                 each.subheader(f"[{paper['title']}]({paper['link']})")
-
+                
                 # Authors — truncate long lists
                 authors = paper["authors"]
                 author_str = (
@@ -43,12 +44,13 @@ def render_search_view():
                 each.write(f"**Authors:** {author_str}")
 
                 # Metadata row
-                meta_cols = each.columns(3)
+                meta_cols = each.columns(4)
                 meta_cols[0].write(f"📅 **Published:** {paper['published']}")
                 meta_cols[1].write(f"🏷️ **Category:** `{paper['venue']}`")
                 meta_cols[2].write(
                     f"📂 **All tags:** {', '.join(f'`{c}`' for c in paper['categories'][:4])}"
                 )
+                meta_cols[3].write(f"🔗 **arXiv ID:** `{paper['arxiv_id']}`")
 
                 # Abstract (collapsible for long ones)
                 with each.expander("Abstract", expanded=True):
