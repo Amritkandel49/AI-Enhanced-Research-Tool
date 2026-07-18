@@ -4,4 +4,4 @@ __pycache__
 __pycache__/*
 */__pycache__
 img/
-chroma_db
+chroma_db/
