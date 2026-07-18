@@ -1,36 +1,6 @@
 # AI Enhanced Research Tool
 
-A web application that lets you **search for academic papers** from arXiv and **ask an AI** to explain them in any style you choose — all powered by LangChain and free hosted LLMs.
-
----
-
-## Table of Contents
-
-- [Overview](#-overview)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [How It Works](#-how-it-works)
-  - [Paper Fetching Pipeline](#1-paper-fetching-pipeline)
-  - [Dynamic Prompt Generation with LangChain](#2-dynamic-prompt-generation-with-langchain)
-  - [LLM Integration](#3-llm-integration)
-- [Environment Variables](#-environment-variables)
-- [Getting Started (Replication Guide)](#-getting-started-replication-guide)
-- [Limitations & Honest Notes](#%EF%B8%8F-limitations--honest-notes)
-- [Future Improvements](#-future-improvements)
-
----
-
-## Overview
-
-The **AI Enhanced Research Tool** is a personal learning project that bridges academic paper discovery with AI-powered explanations. A user types a research topic or paper title, the app fetches the top relevant papers from arXiv, and then — for any paper the user selects — it uses a large language model to generate a tailored explanation based on the user's preferred style and length.
-
-This project was built as a hands-on exploration of:
-
-- The **`arxiv`** Python library for arXiv paper search
-- **LangChain's** `PromptTemplate` and LLM abstraction components
-- **OpenRouter** as a free gateway to hosted LLMs
-- **Streamlit** for building a fast, clean UI
+A Streamlit app that searches arXiv papers and lets you **chat with the full text** of any paper — powered by a RAG pipeline built with LangChain and free hosted LLMs.
 
 ---
 
@@ -38,13 +8,13 @@ This project was built as a hands-on exploration of:
 
 | Feature | Description |
 |---|---|
-| **Paper Search** | Search arXiv by topic or title and retrieve up to 10 results |
-| **Paper Cards** | Each paper is displayed with its title, authors, venue, year, and abstract |
-| **Ask AI** | Select any paper and ask the AI to explain it in your preferred style |
-| **LLM Settings** | Choose model, temperature, explanation type, and explanation length |
-| **Explanation Styles** | *Mathematics Oriented*, *Beginner Friendly*, or *Summary* |
-| **Explanation Lengths** | *Short* (~60 words), *Medium* (~175 words), or *Long* (~400 words) |
-| **Paper Links** | Direct link to the original paper source is always provided |
+| **Paper Search** | Search arXiv by topic/title, retrieve up to 10 results |
+| **Paper Cards** | Title, authors, venue, year, abstract, and direct arXiv link |
+| **AI Explanation** | One-shot explanation in your chosen style and length |
+| **RAG Chatbot** | Chat with the full text of a paper using a persistent Chroma vector store |
+| **Full-Text Retrieval** | Downloads and parses the paper PDF via PyMuPDF |
+| **Text Chunking** | Splits paper text with `RecursiveCharacterTextSplitter` (1000 chars / 200 overlap) |
+| **LLM Settings** | Choose model, temperature, explanation style, and length |
 
 ---
 
@@ -52,13 +22,14 @@ This project was built as a hands-on exploration of:
 
 | Component | Technology |
 |---|---|
-| **Frontend / UI** | [Streamlit](https://streamlit.io/) |
-| **arXiv Paper Search** | [`arxiv`](https://python-arxiv.readthedocs.io/) |
-| **LLM Prompt Framework** | [LangChain](https://www.langchain.com/) (`langchain-core`, `langchain-openai`, `langchain-huggingface`) |
-| **LLM Provider (Primary)** | [OpenRouter](https://openrouter.ai/) — free tier (`openai/gpt-oss-20b:free`) |
-| **LLM Provider (Experimental)** | [Hugging Face Inference Endpoints](https://huggingface.co/inference-endpoints) (`langchain-huggingface`) |
-| **Environment Management** | `python-dotenv` |
-| **HTTP / Async** | `httpx`, `asyncio` |
+| **UI** | [Streamlit](https://streamlit.io/) |
+| **Paper Search** | [`arxiv`](https://python-arxiv.readthedocs.io/) |
+| **PDF Parsing** | [`pymupdf`](https://pymupdf.readthedocs.io/) |
+| **LLM Framework** | [LangChain](https://www.langchain.com/) (LCEL) |
+| **Vector Store** | [Chroma](https://www.trychroma.com/) (persistent, via `langchain-chroma`) |
+| **Embeddings** | `langchain-google-genai` |
+| **LLM Provider** | [OpenRouter](https://openrouter.ai/) — `openai/gpt-oss-20b:free` |
+| **Env Management** | `python-dotenv` |
 
 ---
 
@@ -70,270 +41,113 @@ AI Research Tool/
 ├── main.py
 │
 ├── views/
-│   ├── search_view.py         
-│   └── ai_view.py             
+│   ├── search_view.py          # Search form + paper cards
+│   └── ai_view.py              # AI explanation + RAG chatbot UI
 │
 ├── src/
-│   ├── __init__.py 
-│   ├── fetch_papers.py        
-│   └── papers.py             
+│   ├── fetch_papers.py         # arXiv search (async)
+│   ├── paper_loader.py         # PDF download + text extraction (PyMuPDF)
+│   ├── text_processing.py      # Text chunking → LangChain Documents
+│   ├── format_llm_output.py    # Markdown formatting helpers
+│   └── papers.py               # Paper data model
 │
 ├── llm/
-│   ├── __init__.py           
-│   ├── prompt_generator.py
-│   └── llm_model.py
+│   ├── prompt_generator.py     # LangChain PromptTemplate builder
+│   ├── llm_model.py            # LLM instantiation (OpenRouter / HuggingFace)
+│   └── rag_chain.py            # LCEL RAG chain (retriever → prompt → LLM)
 │
-├── prompt_template.json
-├── requirements.txt           
-├── .env                      
-├── .gitignore                
+├── chroma_db/                  # Persistent vector store (git-ignored)
+├── requirements.txt
+├── .env
 └── README.md
-```
-
-### Module Responsibilities
-
-```
-main.py
-  └─► Loads environment variables
-  └─► Initialises Streamlit session state
-  └─► Routes to search_view or ai_view based on selected paper
-
-views/search_view.py
-  └─► Renders the search form
-  └─► Calls PaperFetcher asynchronously via asyncio.run()
-  └─► Displays paper cards with "ASK AI" button per paper
-
-views/ai_view.py
-  └─► Renders selected paper's details
-  └─► Provides LLM settings sidebar (model, temperature, style, length)
-  └─► Calls PromptGenerator → LangChain PromptTemplate → LLM → renders markdown
-
-src/fetch_papers.py (PaperFetcher)
-  └─► Searches arXiv using the arxiv Python client
-  └─► Offloads blocking I/O to a thread with asyncio.to_thread()
-
-llm/prompt_generator.py (PromptGenerator)
-  └─► Defines a LangChain PromptTemplate with 6 input variables
-  └─► Maps user-chosen style/length to detailed instruction strings
-  └─► Calls .format() on the template to produce the final prompt string
-  └─► Saves the last prompt context to prompt_template.json
-
-llm/llm_model.py (ModelSelection)
-  └─► Accepts llm_settings dict (model name, temperature)
-  └─► Instantiates ChatOpenAI (via OpenRouter base URL) or ChatHuggingFace
-  └─► Returns the ready-to-use LangChain chat model
 ```
 
 ---
 
 ## How It Works
 
-### 1. Paper Fetching Pipeline
+### 1. Paper Fetching
+`PaperFetcher` queries arXiv and returns paper metadata (title, authors, abstract, link). The blocking call is wrapped in `asyncio.to_thread()` to avoid freezing Streamlit.
 
-This project uses the arXiv Python client to search papers directly, which keeps the paper-fetching path lightweight and avoids scraping entirely.
+### 2. AI Explanation (one-shot)
+`PromptGenerator` builds a `LangChain PromptTemplate` from paper metadata + user-chosen style/length, then calls the LLM via OpenRouter.
 
-```python
-# src/fetch_papers.py
-search = arxiv.Search(
-  query=query,
-  max_results=max_results,
-  sort_by=arxiv.SortCriterion.Relevance,
-)
+### 3. RAG Pipeline (full-text chat)
 
-for result in client.results(search):
-  ...
+```
+arXiv PDF
+  │
+  ▼
+PaperLoader          — downloads PDF, extracts text with PyMuPDF
+  │
+  ▼
+TextProcessor        — splits into 1000-char chunks (200 overlap)
+  │
+  ▼
+Chroma (persistent)  — embeds and stores chunks on first load; reloads on revisit
+  │
+  ▼
+build_rag_chain()    — LCEL chain: retriever (top-4) → RAG prompt → LLM → answer
+  │
+  ▼
+Chatbot UI           — multi-turn Q&A rendered in st.chat_message
 ```
 
-Each result is normalised into a dictionary with keys: `title`, `authors`, `link`, `venue`, `year`, `abstract`. The fetch is wrapped in `asyncio.to_thread()` so the blocking I/O doesn't freeze the Streamlit event loop.
+The vector store is keyed by `arxiv_id`, so each paper is only embedded once. Subsequent visits reuse the existing store.
 
 ---
 
-### 2. Dynamic Prompt Generation with LangChain
-
-The core of the AI feature is a **LangChain `PromptTemplate`** defined in `llm/prompt_generator.py`. The template takes **6 variables** — paper metadata plus two instruction strings that are dynamically selected based on user preferences.
-
-```python
-# llm/prompt_generator.py
-from langchain_core.prompts import PromptTemplate
-
-paper_explanation_prompt = PromptTemplate(
-    input_variables=[
-        "title", "authors", "abstract", "paper_link",
-        "explanation_type_instruction",   # e.g. "Focus on math formulations..."
-        "explanation_length_instruction", # e.g. "2-3 sentences (~60 words)"
-    ],
-    template="..."  # Full system + user instruction prompt
-)
-```
-
-The `explanation_type_instruction` and `explanation_length_instruction` are looked up from predefined dictionaries:
-
-| User Selection | Mapped Instruction |
-|---|---|
-| Mathematics Oriented | Focus on equations, algorithms, LaTeX notation |
-| Beginner Friendly | Plain language, analogies, no assumed background |
-| Summary | Concise academic summary of purpose, method, findings |
-| Short | ~50–70 words |
-| Medium | ~150–200 words |
-| Long | ~350–450 words across 3–5 paragraphs |
-
-This design means **no hardcoded prompt strings** are scattered around the codebase — all variation is handled by swapping instruction values into the single template.
-
----
-
-### 3. LLM Integration
-
-LangChain's model abstraction (`ChatOpenAI` from `langchain-openai`) is used to call the LLM. **OpenRouter** exposes an OpenAI-compatible API endpoint, so `ChatOpenAI` works with it by simply overriding the `base_url`:
-
-```python
-# llm/llm_model.py
-from langchain_openai import ChatOpenAI
-
-model = ChatOpenAI(
-    base_url=os.getenv('OPENAI_BASE_URL'),  # Points to OpenRouter
-    model="openai/gpt-oss-20b:free",        # Free OpenRouter model
-    temperature=0.7,
-)
-```
-
-The full pipeline in `ai_view.py` is just three lines:
-
-```python
-pg   = PromptGenerator(paper, llm_settings)
-prompt_str = pg.build_explanation_prompt()  # LangChain .format() call
-result     = llm.invoke(prompt_str)          # LangChain model call
-st.markdown(result.content)                  # Render markdown output
-```
-
----
-
-## Environment Variables
-
-Create a `.env` file in the project root with the following keys:
-
-```env
-# OpenRouter — OpenAI-compatible base URL for free LLM access
-OPENAI_BASE_URL=https://openrouter.ai/api/v1
-OPENAI_API_KEY=your_openrouter_api_key_here
-
-# Hugging Face — only needed if you enable HuggingFace models
-HUGGINGFACEHUB_API_TOKEN=your_huggingface_token_here
-```
-
-> **Never commit your `.env` file.** It is already listed in `.gitignore`.
-
----
-
-## Getting Started (Replication Guide)
-
-Follow these steps to run this project locally after cloning from GitHub.
+## Getting Started
 
 ### Prerequisites
+- Python 3.10+
+- Free [OpenRouter](https://openrouter.ai/) account
+- Google API key (for Gemini embeddings)
 
-- Python 3.10 or higher
-- A free [OpenRouter](https://openrouter.ai/) account (access to free models like `openai/gpt-oss-20b:free`)
-
-### Step 1 — Clone the Repository
+### Steps
 
 ```bash
+# 1. Clone
 git clone https://github.com/Amritkandel49/AI-Enhanced-Research-Tool.git
 cd AI-Enhanced-Research-Tool
-```
 
-### Step 2 — Create and Activate a Virtual Environment
+# 2. Virtual environment
+python -m venv .venv && source .venv/bin/activate
 
-```bash
-python -m venv .venv
-
-# On Linux / macOS:
-source .venv/bin/activate
-
-# On Windows:
-.venv\Scripts\activate
-```
-
-### Step 3 — Install Dependencies
-
-```bash
+# 3. Dependencies
 pip install -r requirements.txt
-```
 
-> **Note on `requirements.txt`:** The file uses bare package names. For a reproducible install with pinned versions, consider running `pip freeze > requirements.txt` after your initial install.
+# 4. Environment
+cp .env.example .env   # fill in your keys
 
-### Step 4 — Set Up Environment Variables
-
-```bash
-cp .env.example .env   # or create .env manually
-```
-
-Edit `.env` and fill in your actual API keys:
-
-```env
-OPENAI_BASE_URL=https://openrouter.ai/api/v1
-OPENAI_API_KEY=your_openrouter_api_key_here
-```
-
-### Step 5 — Run the Application
-
-```bash
+# 5. Run
 streamlit run main.py
 ```
 
-The app will open in your browser at `http://localhost:8501`.
+App opens at `http://localhost:8501`.
 
-### Step 6 — Use the App
-
-1. Type a research paper title or topic in the search box and click **Fetch Papers**.
-2. Browse the list of returned papers from arXiv.
-3. Click **ASK AI** on any paper you want to understand.
-4. On the AI page, configure your preferred model, temperature, explanation style, and length.
-5. Click **Ask AI** to generate an explanation.
-6. Use the **⬅ Back to Search Results** button to return to your results.
+### Usage
+1. Search for a topic → browse paper cards.
+2. Click **ASK AI** → configure style/length → get a one-shot explanation.
+3. Click **Chat with Paper** → the PDF is fetched, chunked, and embedded automatically.
+4. Ask any question in the chat box — the RAG chain retrieves relevant chunks and answers from the paper's full text.
 
 ---
 
-## Limitations & Honest Notes
+## Limitations
 
-This project was built while **actively learning** LangChain and AI-powered application development. Here are the real constraints to be aware of:
-
-### API & Rate Limits
-
-| Service | Constraint |
-|---|---|
-| **OpenRouter (Free Models)** | Free model endpoints (`openai/gpt-oss-20b:free`) are rate-limited and may respond slowly or return errors during peak demand. |
-| **Hugging Face Endpoints** | Free HuggingFace Inference API has cold-start delays and strict rate limits. The HuggingFace model integration is present in the codebase but kept commented out as a work-in-progress. |
-
-### Architectural Limitations
-
-- **Abstract-only context:** arXiv search returns only the abstract and metadata for each paper, not the full text. The AI explanation is therefore limited to what can be inferred from the abstract. The prompt instructs the model to visit the paper link — but whether it can do so depends on the model's capabilities.
-- **No chat history / memory:** The current AI view generates a fresh explanation on every submission. There is no multi-turn conversation or context carried over between interactions (the chat input UI exists but is disabled).
-- **Single model at a time:** The `ModelSelection` class currently supports only one production model (`openai/gpt-oss-20b:free` via OpenRouter). Adding more models requires extending the `if/elif` block manually.
-- **No result caching:** Every search triggers a live arXiv query. Results are held only in Streamlit session state and lost on page refresh.
-
-### Learning Context
-
-> This tool was built as a **portfolio and learning project** by someone actively learning Gen-AI application development with LangChain. It demonstrates core concepts — LangChain PromptTemplates, LLM abstraction, async I/O with Streamlit, and API-based scraping — rather than being production-ready software.
-
----
-
-## Future Improvements
-
-- [ ] Add full-text retrieval via arXiv or Semantic Scholar APIs
-- [ ] Enable multi-turn chat with conversation memory using LangChain's `ConversationBufferMemory`
-- [ ] Support more LLM providers (Groq, Together AI, etc.) in `ModelSelection`
-- [ ] Add result caching with `st.cache_data` to avoid repeated arXiv queries
-- [ ] Implement a favourites / save-paper feature using a local SQLite database
-- [ ] Deploy to Streamlit Community Cloud
+- **Embedding cost:** First-time load of a paper calls the Google embedding API for every chunk.
+- **PDF availability:** A small number of arXiv papers are only available as scanned images; PyMuPDF will extract little or no text from these.
+- **No result caching:** Search results are held in Streamlit session state and lost on page refresh.
 
 ---
 
 ## Author
 
-**Amrit Kandel**
-- GitHub: [@Amritkandel49](https://github.com/Amritkandel49)
+**Amrit Kandel** — [@Amritkandel49](https://github.com/Amritkandel49)
 
 ---
 
 ## License
 
-This project is open-source and available under the [MIT License](LICENSE).
+MIT License
